@@ -11,3 +11,10 @@
   (if (> a b)
       null
       (cons a (my-range (+ a 1) b))))
+
+(define (my-fake-sqrt n)
+  (my-fake-sqrt-aux n 1))
+(define (my-fake-sqrt-aux n i)
+  (if (<= n (* i i))
+      i
+      (my-fake-sqrt-aux n (+ i 1))))
