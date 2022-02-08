@@ -1,5 +1,18 @@
 #lang racket
 
+(define (my-foldr lst foo init)
+  (if (null? lst)
+    init
+    (foo (car lst) (my-foldr (cdr lst) foo init))))
+
+(define (my-foldl lst foo init)
+  (if (null? lst)
+      init
+      (my-foldl (cdr lst) foo (foo init (car lst)))))
+
+(define (my-append lst1 lst2)
+  (my-foldr lst1 cons lst2))
+  
 (define (my-len lst)
   (my-len-aux lst 0))
 (define (my-len-aux lst acc)
@@ -19,6 +32,19 @@
       i
       (my-fake-sqrt-aux n (+ i 1))))
 
+(define (my-list-cut-head lst i)
+  (if (= i 1)
+      lst
+      (my-list-cut-head (cdr lst) (- i 1))))
+
+(define (my-list-cut-tail lst i)
+  (if (= i 1)
+      (cons (car lst) null)
+      (cons (car lst) (my-list-cut-tail (cdr lst) (- i 1)))))
+
+(define (my-list-cut lst l r)
+  (my-list-cut-head (my-list-cut-tail lst r) l))
+
 (define (my-list-ref lst i)
   (if (= i 1)
       (car lst)
@@ -32,6 +58,22 @@
 
 (define (my-get-cell mtx x y)
   (my-list-ref (my-get-row mtx y) x))
+
+(define (my-find-box-range a size acc)
+  (if (<= a (+ acc size))
+      (cons (+ acc 1) (+ acc size))
+      (my-find-box-range a size (+ acc size))))
+
+(define (my-get-box mtx x y size)
+  (let ([rows (my-find-box-range y size 0)]
+        [columns (my-find-box-range x size 0)])
+    (map (lambda (row) (my-list-cut row (car columns) (cdr columns)))
+         (my-list-cut mtx (car rows) (cdr rows)))
+  )
+)
+
+(define (my-append-lists lst)
+  (my-foldl lst my-append null))
 
 (define mtx-test
   '((4 0 1 6 0 8 3 0 0)
