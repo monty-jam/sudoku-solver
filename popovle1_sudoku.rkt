@@ -38,32 +38,34 @@
       i
       (fake-sqrt-aux n (+ i 1))))
 
-(define (list-cut-head lst i)
-  (if (= i 1)
+(define (my-list-cut-head lst i)
+  (if (<= i 1)
       lst
-      (list-cut-head (cdr lst) (- i 1))))
+      (my-list-cut-head (cdr lst) (- i 1))))
 
-(define (list-cut-tail lst i)
-  (if (= i 1)
+(define (my-list-cut-tail lst i)
+  (if (<= i 1)
       (cons (car lst) null)
-      (cons (car lst) (list-cut-tail (cdr lst) (- i 1)))))
+      (cons (car lst) (my-list-cut-tail (cdr lst) (- i 1)))))
 
-(define (list-cut lst l r)
-  (list-cut-head (list-cut-tail lst r) l))
+(define (my-list-cut lst l r)
+  (if (> l r)
+      null
+      (my-list-cut-head (my-list-cut-tail lst r) l)))
 
-(define (list-ref lst i)
+(define (my-list-ref lst i)
   (if (= i 1)
       (car lst)
-      (list-ref (cdr lst) (- i 1))))
+      (my-list-ref (cdr lst) (- i 1))))
 
 (define (get-row mtx y)
-  (list-ref mtx y))
+  (my-list-ref mtx y))
 
 (define (get-column mtx x)
-  (map (lambda (lst) (list-ref lst x)) mtx))
+  (map (lambda (lst) (my-list-ref lst x)) mtx))
 
 (define (get-cell mtx x y)
-  (list-ref (get-row mtx y) x))
+  (my-list-ref (get-row mtx y) x))
 
 (define (find-box-range a size acc)
   (if (<= a (+ acc size))
@@ -73,8 +75,8 @@
 (define (get-box mtx x y size)
   (let ([rows (find-box-range y size 0)]
         [columns (find-box-range x size 0)])
-    (map (lambda (row) (list-cut row (car columns) (cdr columns)))
-         (list-cut mtx (car rows) (cdr rows)))))
+    (map (lambda (row) (my-list-cut row (car columns) (cdr columns)))
+         (my-list-cut mtx (car rows) (cdr rows)))))
 
 (define (append-lists lst)
   (my-foldl lst my-append null))
@@ -101,7 +103,21 @@
 (define (empty-cells mtx range)
   (append-lists
     (map (lambda (lst y) (empty-cells-row lst 1 y)) mtx range)))
-  
+
+(define (my-list-set lst x val)
+  (let ([size (my-len lst)])
+    (let ([i (+ (- size x) 1)]) ; invert x coordinate
+      (my-list-set-aux lst i val size))))
+(define (my-list-set-aux lst x val size)
+  (if (= size 0)
+      null
+      (if (= size x)
+          (cons val (my-list-set-aux (cdr lst) x val (- size 1)))
+          (cons (car lst) (my-list-set-aux (cdr lst) x val (- size 1))))))
+
+; returns a new matrix with changed value in given coordinates
+(define (set-cell mtx x y val)
+  (my-list-set mtx y (my-list-set (my-list-ref mtx y) x val)))
   
 (define mtx-test
   '((4 0 1 6 0 8 3 0 0)
