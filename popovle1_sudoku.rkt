@@ -10,6 +10,12 @@
       init
       (my-foldl (cdr lst) foo (foo init (car lst)))))
 
+(define (my-filter lst foo)
+    (my-foldr lst (lambda (e res) (if (foo e)
+                                      (cons e res)
+                                      res))
+              null))
+
 (define (my-append lst1 lst2)
   (my-foldr lst1 cons lst2))
   
@@ -75,6 +81,16 @@
 (define (my-append-lists lst)
   (my-foldl lst my-append null))
 
+(define (my-is-in-list val lst)
+  (cond
+    ((null? lst) #f)
+    ((= (car lst) val) #t)
+    (#t (my-is-in-list val (cdr lst)))))
+
+; returns a list of values from lst1, that have not been occured in lst2
+(define (my-left-outer-join lst1 lst2)
+  (my-filter lst1 (lambda (x) (not (my-is-in-list x lst2)))))
+  
 (define mtx-test
   '((4 0 1 6 0 8 3 0 0)
     (6 0 0 1 9 3 5 0 0)
