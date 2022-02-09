@@ -31,65 +31,65 @@
       null
       (cons a (my-range (+ a 1) b))))
 
-(define (my-fake-sqrt n)
-  (my-fake-sqrt-aux n 1))
-(define (my-fake-sqrt-aux n i)
+(define (fake-sqrt n)
+  (fake-sqrt-aux n 1))
+(define (fake-sqrt-aux n i)
   (if (<= n (* i i))
       i
-      (my-fake-sqrt-aux n (+ i 1))))
+      (fake-sqrt-aux n (+ i 1))))
 
-(define (my-list-cut-head lst i)
+(define (list-cut-head lst i)
   (if (= i 1)
       lst
-      (my-list-cut-head (cdr lst) (- i 1))))
+      (list-cut-head (cdr lst) (- i 1))))
 
-(define (my-list-cut-tail lst i)
+(define (list-cut-tail lst i)
   (if (= i 1)
       (cons (car lst) null)
-      (cons (car lst) (my-list-cut-tail (cdr lst) (- i 1)))))
+      (cons (car lst) (list-cut-tail (cdr lst) (- i 1)))))
 
-(define (my-list-cut lst l r)
-  (my-list-cut-head (my-list-cut-tail lst r) l))
+(define (list-cut lst l r)
+  (list-cut-head (list-cut-tail lst r) l))
 
-(define (my-list-ref lst i)
+(define (list-ref lst i)
   (if (= i 1)
       (car lst)
-      (my-list-ref (cdr lst) (- i 1))))
+      (list-ref (cdr lst) (- i 1))))
 
-(define (my-get-row mtx y)
-  (my-list-ref mtx y))
+(define (get-row mtx y)
+  (list-ref mtx y))
 
-(define (my-get-column mtx x)
-  (map (lambda (lst) (my-list-ref lst x)) mtx))
+(define (get-column mtx x)
+  (map (lambda (lst) (list-ref lst x)) mtx))
 
-(define (my-get-cell mtx x y)
-  (my-list-ref (my-get-row mtx y) x))
+(define (get-cell mtx x y)
+  (list-ref (get-row mtx y) x))
 
-(define (my-find-box-range a size acc)
+(define (find-box-range a size acc)
   (if (<= a (+ acc size))
       (cons (+ acc 1) (+ acc size))
-      (my-find-box-range a size (+ acc size))))
+      (find-box-range a size (+ acc size))))
 
-(define (my-get-box mtx x y size)
-  (let ([rows (my-find-box-range y size 0)]
-        [columns (my-find-box-range x size 0)])
-    (map (lambda (row) (my-list-cut row (car columns) (cdr columns)))
-         (my-list-cut mtx (car rows) (cdr rows)))
+(define (get-box mtx x y size)
+  (let ([rows (find-box-range y size 0)]
+        [columns (find-box-range x size 0)])
+    (map (lambda (row) (list-cut row (car columns) (cdr columns)))
+         (list-cut mtx (car rows) (cdr rows)))
   )
 )
 
-(define (my-append-lists lst)
+(define (append-lists lst)
   (my-foldl lst my-append null))
 
-(define (my-is-in-list val lst)
+(define (is-in-list val lst)
   (cond
     ((null? lst) #f)
     ((= (car lst) val) #t)
-    (#t (my-is-in-list val (cdr lst)))))
+    (#t (is-in-list val (cdr lst)))))
 
 ; returns a list of values from lst1, that have not been occured in lst2
-(define (my-left-outer-join lst1 lst2)
-  (my-filter lst1 (lambda (x) (not (my-is-in-list x lst2)))))
+(define (left-outer-join lst1 lst2)
+  (my-filter lst1 (lambda (x) (not (is-in-list x lst2)))))
   
 (define mtx-test
   '((4 0 1 6 0 8 3 0 0)
