@@ -74,22 +74,34 @@
   (let ([rows (find-box-range y size 0)]
         [columns (find-box-range x size 0)])
     (map (lambda (row) (list-cut row (car columns) (cdr columns)))
-         (list-cut mtx (car rows) (cdr rows)))
-  )
-)
+         (list-cut mtx (car rows) (cdr rows)))))
 
 (define (append-lists lst)
   (my-foldl lst my-append null))
 
 (define (is-in-list val lst)
   (cond
-    ((null? lst) #f)
-    ((= (car lst) val) #t)
-    (#t (is-in-list val (cdr lst)))))
+    [(null? lst) #f]
+    [(= (car lst) val) #t]
+    [#t (is-in-list val (cdr lst))]))
 
 ; returns a list of values from lst1, that have not been occured in lst2
 (define (left-outer-join lst1 lst2)
   (my-filter lst1 (lambda (x) (not (is-in-list x lst2)))))
+
+; returns coordinates of empty cells in a given row
+(define (empty-cells-row lst x y)
+  (if (null? lst)
+      null
+      (if (= (car lst) 0)
+          (cons (cons x y) (empty-cells-row (cdr lst) (+ x 1) y))
+          (empty-cells-row (cdr lst) (+ x 1) y))))
+
+; returns a sequence of coordinates (pair of atoms) of empty cells
+(define (empty-cells mtx range)
+  (append-lists
+    (map (lambda (lst y) (empty-cells-row lst 1 y)) mtx range)))
+  
   
 (define mtx-test
   '((4 0 1 6 0 8 3 0 0)
