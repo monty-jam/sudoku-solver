@@ -10,17 +10,19 @@ Vaše aplikace musí umět alespoň:
 
 ## Example usage
 
-Pro spuštění solveru se stromovou rekurzí použijte funkci:
+Pro spuštění solveru se stromovou rekurzí použijte funkci, která vratí seznam všech možných řešení:
 
 `> (solve-sudoku-tree mtx1)`
 
-Solver s koncovou rekurzí:
+Solver s koncovou rekurzí (pouze jedno řešení):
 
 `> (solve-sudoku-tail mtx1)`
 
-V programu připraveno 6 různých sudoku pro testování:
+V programu připraveno 8 různých sudoku pro testování:
 
+*  *mtx0* - empty 9x9 sudoku
 *  *mtx1* - 9x9 sudoku
+*  *mtx1-1* - 9x9 sudoku with many empty cells
 *  *mtx2* - 4x4 sudoku
 *  *mtx3* - 1x1 sudoku
 *  *mtx4* - 1x1 sudoku without empty cells
