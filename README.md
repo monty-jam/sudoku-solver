@@ -1,9 +1,17 @@
-# <assignment name>
+## Sudoku solver
 
-Copy the task assignment description here.
-If the task has optional features then describe which of those features were implemented (We are not going to actively look for any optional features.)
+Napište sudoku solver. Na vstupu dostanete hrací desku s libovolným počtem předvyplněných buněk. Vaším úkolem je vyplnit Sudoku, pokud řešení existuje.
+
+Vaše aplikace musí umět alespoň:
+
+* Načíst a interně zareprezentovat sudoku.
+* Najít alespoň jedno řešení (existuje-li) libovolně zadaného sudoku 9x9.
+* *Velikost hrací desky není omezená*
 
 ## Example usage
 
-Describe the usage of your program.
-Attach some example inputs that show the functionality of your program (for every mandatory and optional feature).
+Pro spuštění solveru použijte funkci:
+
+`> (solve-sudoku mtx1)`
+
+V programu připraveno 6 různých sudoku pro testování *(mtx1, mtx2, mtx3, mtx4, mtx5, mtx6)*.
