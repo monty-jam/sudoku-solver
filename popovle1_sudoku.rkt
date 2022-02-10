@@ -165,13 +165,13 @@
 
 ; SUDOKU SOLVER (TREE RECURSIVE)
 
-; tree recursive main function for solving sudoku
+; tree recursive main function for solving sudokuб returns a list of all the possible solutions
 (define (solve-sudoku-tree mtx)
   (solve-sudoku-step-tree mtx (empty-cells mtx) 0))
        
 (define (solve-sudoku-step-tree mtx seq val)
   (if (null? seq)
-      mtx ; we moved through the whole sequence (over the right edge)
+      (list mtx) ; we moved through the whole sequence (over the right edge)
       (let ([newseq (cdr seq)] 
             [newvals (left-outer-join (my-range 1 (my-len mtx))
                                       (get-neighbours mtx (car (car seq)) (cdr (car seq))))]) ; the list of possible values,
@@ -189,7 +189,7 @@
 
 ; SUDOKU SOLVER (TAIL RECURSIVE)
 
-; tail recursive main function for solving sudoku
+; tail recursive main function for solving sudoku, returns only one solution
 (define (solve-sudoku-tail mtx)
   (let ([seq (empty-cells mtx)] ; initializing the sequence of empty cells to fill
         [size (my-len mtx)])
@@ -215,6 +215,18 @@
 
 ; SUDOKU EXAMPLES
 
+; empty sudoku 9x9
+(define mtx0
+  '((0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)))
+
 ; sudoku 9x9
 (define mtx1
   '((4 0 1 6 0 8 3 0 0)
@@ -224,6 +236,18 @@
     (0 0 5 0 3 6 9 8 7)
     (0 8 0 0 1 2 0 6 5)
     (0 3 9 2 0 0 8 1 6)
+    (8 4 0 0 6 1 0 5 9)
+    (1 7 0 9 0 0 0 0 4)))
+
+; sudoku 9x9 with many empty cells
+(define mtx1-1
+  '((4 0 1 6 0 8 3 0 0)
+    (6 0 0 1 9 3 5 0 0)
+    (3 9 8 0 2 0 0 0 0)
+    (7 0 0 8 0 0 0 2 0)
+    (0 0 5 0 3 6 9 8 7)
+    (0 0 0 0 0 0 0 0 0)
+    (0 0 0 0 0 0 0 0 0)
     (8 4 0 0 6 1 0 5 9)
     (1 7 0 9 0 0 0 0 4)))
 
