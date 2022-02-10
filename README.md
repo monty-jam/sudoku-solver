@@ -5,13 +5,24 @@ Napište sudoku solver. Na vstupu dostanete hrací desku s libovolným počtem p
 Vaše aplikace musí umět alespoň:
 
 * Načíst a interně zareprezentovat sudoku.
-* Najít alespoň jedno řešení (existuje-li) libovolně zadaného sudoku 9x9.
-* *Velikost hrací desky není omezená*
+* Najít alespoň jedno řešení (existuje-li) libovolně zadaného sudoku.
+* ***Velikost hrací desky není omezená***
 
 ## Example usage
 
-Pro spuštění solveru použijte funkci:
+Pro spuštění solveru se stromovou rekurzí použijte funkci:
 
-`> (solve-sudoku mtx1)`
+`> (solve-sudoku-tree mtx1)`
 
-V programu připraveno 6 různých sudoku pro testování *(mtx1, mtx2, mtx3, mtx4, mtx5, mtx6)*.
+Solver s koncovou rekurzí:
+
+`> (solve-sudoku-tail mtx1)`
+
+V programu připraveno 6 různých sudoku pro testování:
+
+*  *mtx1* - 9x9 sudoku
+*  *mtx2* - 4x4 sudoku
+*  *mtx3* - 1x1 sudoku
+*  *mtx4* - 1x1 sudoku without empty cells
+*  *mtx5* - 16x16 sudoku
+*  *mtx6* - 9x9 sudoku without a solution
