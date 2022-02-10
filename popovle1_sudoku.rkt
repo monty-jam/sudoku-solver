@@ -1,5 +1,9 @@
 #lang racket
 
+; --------------------------------------------------------
+
+; HIGH ORDER FUNCTIONS
+
 (define (my-foldr lst foo init)
   (if (null? lst)
     init
@@ -16,15 +20,9 @@
                                       res))
               null))
 
-(define (my-append lst1 lst2)
-  (my-foldr lst1 cons lst2))
-  
-(define (my-len lst)
-  (my-len-aux lst 0))
-(define (my-len-aux lst acc)
-  (if (null? lst)
-      acc
-      (my-len-aux (cdr lst) (+ 1 acc))))
+; --------------------------------------------------------
+
+; UNCATEGORIZED
 
 (define (my-range a b)
   (if (> a b)
@@ -37,6 +35,23 @@
   (if (<= n (* i i))
       i
       (fake-sqrt-aux n (+ i 1))))
+
+; --------------------------------------------------------
+
+; WORKING WITH LISTS FUNCTIONS
+
+(define (my-len lst)
+  (my-len-aux lst 0))
+(define (my-len-aux lst acc)
+  (if (null? lst)
+      acc
+      (my-len-aux (cdr lst) (+ 1 acc))))
+
+(define (my-append lst1 lst2)
+  (my-foldr lst1 cons lst2))
+
+(define (append-lists lst)
+  (my-foldl lst my-append null))
 
 (define (my-list-cut-head lst i)
   (if (<= i 1)
@@ -59,13 +74,19 @@
     [(= i 1) (car lst)]
     [#t (my-list-ref (cdr lst) (- i 1))]))
 
-; returns the value after the given value in a list
-(define (my-list-next lst val)
+(define (is-in-list? val lst)
   (cond
-    [(null? lst) null]
-    [(null? (cdr lst)) null]
-    [(= val (car lst)) (cadr lst)]
-    [#t (my-list-next (cdr lst) val)]))
+    [(null? lst) #f]
+    [(= (car lst) val) #t]
+    [#t (is-in-list? val (cdr lst))]))
+
+; returns a list of values from lst1, that have not been occured in lst2
+(define (left-outer-join lst1 lst2)
+  (my-filter lst1 (lambda (x) (not (is-in-list? x lst2)))))
+
+; --------------------------------------------------------
+
+; WORKING WITH MATRICES FUNCTIONS
 
 (define (get-row mtx y)
   (my-list-ref mtx y))
@@ -88,27 +109,18 @@
       (map (lambda (row) (my-list-cut row (car columns) (cdr columns)))
            (my-list-cut mtx (car rows) (cdr rows))))))
 
-(define (append-lists lst)
-  (my-foldl lst my-append null))
-
 ; returns a list of unavailable values in current cell
 (define (get-neighbours mtx x y)
   (append-lists (list (get-row mtx y) (get-column mtx x) (append-lists (get-box mtx x y)))))
-  
-(define (is-in-list? val lst)
-  (cond
-    [(null? lst) #f]
-    [(= (car lst) val) #t]
-    [#t (is-in-list? val (cdr lst))]))
 
 (define (collision? mtx x y val)
   (or (is-in-list? val (get-row mtx y))
       (is-in-list? val (get-column mtx x))
       (is-in-list? val (append-lists (get-box mtx x y)))))
 
-; returns a list of values from lst1, that have not been occured in lst2
-(define (left-outer-join lst1 lst2)
-  (my-filter lst1 (lambda (x) (not (is-in-list? x lst2)))))
+; --------------------------------------------------------
+
+; WORKING WITH THE LIST OF PAIRS FUNCTIONS
 
 ; returns coordinates of empty cells in a given row
 (define (empty-cells-row lst x y)
@@ -130,6 +142,10 @@
 (define (get-y seq i)
   (cdr (my-list-ref seq i)))
 
+; --------------------------------------------------------
+
+; SETTERS
+
 (define (my-list-set lst x val)
   (let ([size (my-len lst)])
     (let ([i (+ (- size x) 1)]) ; invert x coordinate
@@ -144,6 +160,10 @@
 ; returns a new matrix with changed value in given coordinates
 (define (mtx-set mtx x y val)
   (my-list-set mtx y (my-list-set (my-list-ref mtx y) x val)))
+
+; --------------------------------------------------------
+
+; SUDOKU SOLVER (TREE RECURSIVE)
 
 ; tree recursive main function for solving sudoku
 (define (solve-sudoku-tree mtx)
@@ -164,6 +184,10 @@
                                                    newseq
                                                    val))
                   newvals))))))
+
+; --------------------------------------------------------
+
+; SUDOKU SOLVER (TAIL RECURSIVE)
 
 ; tail recursive main function for solving sudoku
 (define (solve-sudoku-tail mtx)
@@ -186,6 +210,10 @@
                   (solve-sudoku-step-tail (mtx-set mtx x y newval) (+ i 1) 1)])))])) ; that value is available, add value to the matrix and move forward in the sequence
 
   (solve-sudoku-step-tail mtx 1 1)))
+
+; --------------------------------------------------------
+
+; SUDOKU EXAMPLES
 
 ; sudoku 9x9
 (define mtx1
@@ -267,5 +295,4 @@
     (0 0 0 0 12 0 6 13 2 10 0 0 0 15 0 8)
     (10 8 5 0 16 0 0 0 12 0 0 13 0 0 0 7)))
 
-
-  
+; --------------------------------------------------------
