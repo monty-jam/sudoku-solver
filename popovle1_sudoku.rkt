@@ -54,9 +54,18 @@
       (my-list-cut-head (my-list-cut-tail lst r) l)))
 
 (define (my-list-ref lst i)
-  (if (= i 1)
-      (car lst)
-      (my-list-ref (cdr lst) (- i 1))))
+  (cond
+    [(null? lst) null]
+    [(= i 1) (car lst)]
+    [#t (my-list-ref (cdr lst) (- i 1))]))
+
+; returns the value after the given value in a list
+(define (my-list-next lst val)
+  (cond
+    [(null? lst) null]
+    [(null? (cdr lst)) null]
+    [(= val (car lst)) (cadr lst)]
+    [#t (my-list-next (cdr lst) val)]))
 
 (define (get-row mtx y)
   (my-list-ref mtx y))
@@ -86,15 +95,20 @@
 (define (get-neighbours mtx x y)
   (append-lists (list (get-row mtx y) (get-column mtx x) (append-lists (get-box mtx x y)))))
   
-(define (is-in-list val lst)
+(define (is-in-list? val lst)
   (cond
     [(null? lst) #f]
     [(= (car lst) val) #t]
-    [#t (is-in-list val (cdr lst))]))
+    [#t (is-in-list? val (cdr lst))]))
+
+(define (collision? mtx x y val)
+  (or (is-in-list? val (get-row mtx y))
+      (is-in-list? val (get-column mtx x))
+      (is-in-list? val (append-lists (get-box mtx x y)))))
 
 ; returns a list of values from lst1, that have not been occured in lst2
 (define (left-outer-join lst1 lst2)
-  (my-filter lst1 (lambda (x) (not (is-in-list x lst2)))))
+  (my-filter lst1 (lambda (x) (not (is-in-list? x lst2)))))
 
 ; returns coordinates of empty cells in a given row
 (define (empty-cells-row lst x y)
@@ -108,6 +122,13 @@
 (define (empty-cells mtx)
   (append-lists
     (map (lambda (lst y) (empty-cells-row lst 1 y)) mtx (my-range 1 (my-len mtx)))))
+
+; useful functions for getting values from a sequence of pairs
+(define (get-x seq i)
+  (car (my-list-ref seq i)))
+
+(define (get-y seq i)
+  (cdr (my-list-ref seq i)))
 
 (define (my-list-set lst x val)
   (let ([size (my-len lst)])
@@ -125,23 +146,46 @@
   (my-list-set mtx y (my-list-set (my-list-ref mtx y) x val)))
 
 ; tree recursive main function for solving sudoku
-(define (solve-sudoku mtx)
-  (solve-sudoku-step mtx (empty-cells mtx) 0))
+(define (solve-sudoku-tree mtx)
+  (solve-sudoku-step-tree mtx (empty-cells mtx) 0))
        
-(define (solve-sudoku-step mtx seq val)
+(define (solve-sudoku-step-tree mtx seq val)
   (if (null? seq)
-      mtx
-      (let ([newseq (cdr seq)]
+      mtx ; we moved through the whole sequence (over the right edge)
+      (let ([newseq (cdr seq)] 
             [newvals (left-outer-join (my-range 1 (my-len mtx))
-                                      (get-neighbours mtx (car (car seq)) (cdr (car seq))))])
+                                      (get-neighbours mtx (car (car seq)) (cdr (car seq))))]) ; the list of possible values,
+                                                                                              ; all unavailable values are deleted by the filter inside left-outer-join function
             (if (null? newvals)
-                '()
+                '() ; if no possible values, then we are in a dead end
                 (append-lists
                   (map
-                  (lambda (val) (solve-sudoku-step (mtx-set mtx (car (car seq)) (cdr (car seq)) val)
+                  (lambda (val) (solve-sudoku-step-tree (mtx-set mtx (car (car seq)) (cdr (car seq)) val)
                                                    newseq
                                                    val))
                   newvals))))))
+
+; tail recursive main function for solving sudoku
+(define (solve-sudoku-tail mtx)
+  (let ([seq (empty-cells mtx)] ; initializing the sequence of empty cells to fill
+        [size (my-len mtx)])
+    (define (solve-sudoku-step-tail mtx i acc)
+      (cond
+        [(= i 0) '()] ; we moved over the sequence's left edge, zero solutions
+        [(null? (my-list-ref seq i)) mtx] ; we moved through the whole sequence (over the right edge)
+        [#t
+          (let ([x (get-x seq i)]
+                [y (get-y seq i)])
+            (let ([newval (+ (get-cell mtx x y) acc)])
+              (cond
+                [(> newval size)
+                  (solve-sudoku-step-tail (mtx-set mtx x y 0) (- i 1) 1)] ; no available values, erase the current one and move back in the sequence
+                [(collision? mtx x y newval)
+                  (solve-sudoku-step-tail mtx i (+ acc 1))] ; using accumulator to optimize the amount of calling the greedy mtx-set function
+                [#t
+                  (solve-sudoku-step-tail (mtx-set mtx x y newval) (+ i 1) 1)])))])) ; that value is available, add value to the matrix and move forward in the sequence
+
+  (solve-sudoku-step-tail mtx 1 1)))
 
 ; sudoku 9x9
 (define mtx1
@@ -170,8 +214,42 @@
 (define mtx4
   '((1)))
 
-; sudoku 16x16
+; solvable 16x16 sudoku
 (define mtx5
+  '((0 13 7 10 3 15 0 4 16 5 11 14 2 8 6 1)
+    (0 1 0 14 11 13 16 8 9 12 3 2 0 7 15 10)
+    (2 9 15 8 1 6 12 5 7 13 4 10 3 16 14 11)
+    (3 0 0 16 10 7 14 2 8 15 6 0 0 5 13 9)
+    (8 0 9 7 6 1 5 3 10 0 14 15 13 4 16 12)
+    (4 10 12 1 13 16 2 9 5 3 7 6 14 11 8 15)
+    (16 14 3 0 15 8 4 0 0 0 13 9 6 10 7 2)
+    (15 6 2 13 7 11 10 14 4 16 8 12 1 9 5 3)
+    (6 3 8 2 9 12 7 16 15 1 5 4 0 14 11 13)
+    (1 16 14 11 0 2 13 0 3 6 10 7 8 12 9 4)
+    (13 12 10 0 0 4 3 11 14 9 2 16 7 6 1 5)
+    (7 5 4 9 14 10 0 6 13 8 12 11 15 3 2 16)
+    (14 2 13 3 4 5 15 10 11 7 9 8 16 1 12 6)
+    (11 15 1 12 2 9 8 7 6 4 16 3 5 13 10 14)
+    (9 7 16 4 12 14 6 13 2 10 1 5 11 15 3 8)
+    (10 8 5 6 16 3 11 1 12 14 15 0 9 2 4 0)))
+
+; sudoku 9x9 without a solution
+(define mtx6
+  '((4 2 1 6 0 8 3 0 0)
+    (6 0 0 1 9 3 5 0 0)
+    (3 9 8 0 2 0 0 0 0)
+    (7 0 0 8 0 0 0 2 0)
+    (0 0 5 0 3 6 9 8 7)
+    (0 8 0 0 1 2 0 6 5)
+    (0 3 9 2 0 0 8 1 6)
+    (8 4 0 0 6 1 0 5 9)
+    (1 7 2 9 0 0 0 0 4)))
+
+; unstable 16x16 sudoku,
+; it has the solution, however neither tree recursive nor tail recursive algorithms cannot return the solution,
+; the execution never stops maybe because of the stack capacity and the amount of empty cells to go through.
+; DrRacket crashes after the execution with a debugger.
+(define mtx-test
   '((12 0 0 0 3 0 0 4 0 0 0 14 0 8 6 1)
     (5 0 6 0 0 0 16 8 9 12 0 2 0 0 0 0)
     (2 0 15 0 0 6 0 0 7 13 4 0 0 16 14 0)
@@ -188,18 +266,6 @@
     (0 15 1 0 0 9 8 7 0 0 16 0 0 13 0 14)
     (0 0 0 0 12 0 6 13 2 10 0 0 0 15 0 8)
     (10 8 5 0 16 0 0 0 12 0 0 13 0 0 0 7)))
-
-; sudoku without a solution
-(define mtx6
-  '((4 2 1 6 0 8 3 0 0)
-    (6 0 0 1 9 3 5 0 0)
-    (3 9 8 0 2 0 0 0 0)
-    (7 0 0 8 0 0 0 2 0)
-    (0 0 5 0 3 6 9 8 7)
-    (0 8 0 0 1 2 0 6 5)
-    (0 3 9 2 0 0 8 1 6)
-    (8 4 0 0 6 1 0 5 9)
-    (1 7 2 9 0 0 0 0 4)))
 
 
   
